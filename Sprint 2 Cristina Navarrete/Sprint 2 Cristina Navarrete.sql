@@ -74,22 +74,25 @@ SELECT *
 FROM transaction
 WHERE  EXISTS (SELECT company.id
 							FROM company
-							WHERE country = 'Germany');
+							WHERE transaction.company_id = company.id
+                            AND country = 'Germany');
 
 #Llista les empreses que han realitzat transaccions per un amount superior a la mitjana de totes les transaccions.
-SELECT DISTINCT company.company_name
+SELECT company.company_name
 FROM company
-JOIN transaction
-ON company.id = transaction.company_id
-WHERE transaction.amount> (SELECT AVG(transaction.amount)
-							FROM transaction
-                            WHERE transaction.declined = 0);
+WHERE EXISTS (SELECT transaction.company_id
+			FROM transaction
+			WHERE transaction.company_id = company.id
+			AND transaction.amount > ( SELECT AVG(amount)
+										FROM transaction)
+);
                   
 #Eliminaran del sistema les empreses que no tenen transaccions registrades, entrega el llistat d'aquestes empreses.      
 SELECT company.company_name
 FROM company
 WHERE NOT EXISTS (SELECT transaction.company_id
-					FROM transaction);
+					FROM transaction
+                    WHERE company.id = transaction.company_id);
                    
   
 -- Comprobamos la consulta anterior:
